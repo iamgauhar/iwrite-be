@@ -1,4 +1,6 @@
 const express = require("express");
+const cors = require("cors");
+
 const { connection } = require("./configs/db");
 const { authorAuth } = require("./controllers/author.auth");
 const { AuthorRouter } = require("./routes/Author.route");
@@ -7,6 +9,12 @@ require("dotenv").config();
 
 const app = express();
 app.use(express.json());
+app.use(express.json());
+app.use(
+  cors({
+    origin: "*",
+  })
+);
 
 app.use("/author", AuthorRouter);
 

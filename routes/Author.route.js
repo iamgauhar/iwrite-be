@@ -4,6 +4,7 @@ const jwt = require("jsonwebtoken");
 const cookieParser = require("cookie-parser");
 const { authorValidation } = require("../middlewares/SignupVlidation");
 const { AuthorModel } = require("../models/Author.model");
+const { redis } = require("../controllers/redis.storage");
 
 require("dotenv").config();
 
@@ -13,6 +14,10 @@ const AuthorRouter = express.Router();
 
 AuthorRouter.post("/signup", authorValidation, (req, res) => {
   const { author, username, email, password, profilePic } = req.body;
+  const newAuthor = AuthorModel.findOne({ email });
+  if (newAuthor) {
+    return res.status(400).send({ result: false, msg: "Author already exist" });
+  }
   try {
     bcrypt.hash(password, 7, async (err, hashed) => {
       if (err) {
@@ -38,27 +43,40 @@ AuthorRouter.post("/signup", authorValidation, (req, res) => {
 
 AuthorRouter.post("/login", async (req, res) => {
   const { email, password } = req.body;
-  const author = await AuthorModel.findOne({ email });
+  const author = await AuthorModel.findOne({
+    $or: [{ email: email }, { username: email }],
+  });
   if (author) {
     bcrypt.compare(password, author.password, (err, result) => {
       if (result) {
         const token = jwt.sign(
           { email, username: author.username },
           process.env.JWT_KEY,
-          { expiresIn: "1h" }
+          { expiresIn: "30 days" }
         );
 
         const refreshedToken = jwt.sign({ email }, process.env.JWT_KEY_2, {
-          expiresIn: "7 days",
+          expiresIn: "40 days",
         });
 
-        res.cookie("token", token, { httpOnly: true });
-        res.cookie("refreshToken", refreshedToken, { httpOnly: true });
-        res.status(200).send({
-          result: true,
-          msg: " Login Successfull",
-          token: token,
-          refToken: refreshedToken,
+        // res.cookie("token", token, { httpOnly: true });
+        // res.cookie("refreshToken", refreshedToken, { httpOnly: true });
+
+        redis.set("token", token);
+        redis.set("refToken", refreshedToken);
+
+        redis.mget("token", "refToken", (err, result) => {
+          if (err) {
+            res.status(400).send({ result: false, msg: "Invalid Credential" });
+          } else {
+            console.log(result);
+            res.status(200).send({
+              result: true,
+              msg: " Login Successfull",
+              token: result[0],
+              refToken: result[1],
+            });
+          }
         });
       } else {
         res.status(401).send({ result: false, msg: "Invalid Credential" });

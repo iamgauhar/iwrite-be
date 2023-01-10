@@ -12,13 +12,14 @@ const AuthorRouter = express.Router();
 
 // -----------------------------{ Signup route  }---------------------------->
 
-AuthorRouter.post("/signup", authorValidation, (req, res) => {
+AuthorRouter.post("/signup", authorValidation, async (req, res) => {
   const { author, username, email, password, profilePic } = req.body;
-  const newAuthor = AuthorModel.findOne({
+  const newAuthor = await AuthorModel.findOne({
     $or: [{ email: email }, { username: username }],
   });
+  // console.log(newAuthor);
   if (newAuthor) {
-    return res.status(400).send({ result: false, msg: "Author already exist" });
+    res.status(400).send({ result: false, msg: "Author already exist" });
   }
   try {
     bcrypt.hash(password, 7, async (err, hashed) => {

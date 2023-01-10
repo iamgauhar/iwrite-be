@@ -3,6 +3,8 @@ const { connection } = require("./configs/db");
 const { authorAuth } = require("./controllers/author.auth");
 const { AuthorRouter } = require("./routes/Author.route");
 
+require("dotenv").config();
+
 const app = express();
 app.use(express.json());
 
@@ -16,7 +18,7 @@ app.get("/blogs", authorAuth, (req, res) => {
   return res.status(200).send({ reports: [{ "report 1": "asdfdas" }] });
 });
 
-app.listen(8090, async () => {
+app.listen(process.env.PORT || 5000, async () => {
   try {
     await connection;
     console.log("DB Connected");
@@ -24,5 +26,5 @@ app.listen(8090, async () => {
     console.log(error);
     console.log("DB ERROR");
   }
-  console.log("Listing 8090");
+  console.log("Listing ");
 });

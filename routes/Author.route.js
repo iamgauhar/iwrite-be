@@ -14,7 +14,9 @@ const AuthorRouter = express.Router();
 
 AuthorRouter.post("/signup", authorValidation, (req, res) => {
   const { author, username, email, password, profilePic } = req.body;
-  const newAuthor = AuthorModel.findOne({ email });
+  const newAuthor = AuthorModel.findOne({
+    $or: [{ email: email }, { username: username }],
+  });
   if (newAuthor) {
     return res.status(400).send({ result: false, msg: "Author already exist" });
   }

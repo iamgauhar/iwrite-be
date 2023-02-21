@@ -4,13 +4,15 @@ const jwt = require("jsonwebtoken");
 const cookieParser = require("cookie-parser");
 const { authorValidation } = require("../middlewares/SignupVlidation");
 const { AuthorModel } = require("../models/Author.model");
-const { redis } = require("../controllers/redis.storage");
+// const { redis } = require("../controllers/redis.storage");
 
 require("dotenv").config();
 
 const AuthorRouter = express.Router();
 
 // -----------------------------{ Signup route  }---------------------------->
+
+// let mustInclude = "#$!>?@/)(&%!,0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
 
 AuthorRouter.post("/signup", authorValidation, async (req, res) => {
   const { author, username, email, password, profilePic } = req.body;
@@ -19,8 +21,11 @@ AuthorRouter.post("/signup", authorValidation, async (req, res) => {
   });
   // console.log(newAuthor);
   if (newAuthor) {
-    res.status(400).send({ result: false, msg: "Author already exist" });
+    return res.status(400).send({ result: false, msg: "Author already exist, Try to login" });
   }
+  // if(password.includes(mustInclude.trim().split("").join(" ")) && password.length>7){
+  //   return res.json({"msg":"Please use minimum 8 characters and strong password", "result": flase})
+  // }
   try {
     bcrypt.hash(password, 7, async (err, hashed) => {
       if (err) {
@@ -62,25 +67,9 @@ AuthorRouter.post("/login", async (req, res) => {
           expiresIn: "40 days",
         });
 
-        // res.cookie("token", token, { httpOnly: true });
-        // res.cookie("refreshToken", refreshedToken, { httpOnly: true });
-
-        redis.set("token", token);
-        redis.set("refToken", refreshedToken);
-
-        redis.mget("token", "refToken", (err, result) => {
-          if (err) {
-            res.status(400).send({ result: false, msg: "Invalid Credential" });
-          } else {
-            console.log(result);
-            res.status(200).send({
-              result: true,
-              msg: " Login Successfull",
-              token: result[0],
-              refToken: result[1],
-            });
-          }
-        });
+        res.send({"token": token,"refreshToken": refreshedToken} );
+        
+        
       } else {
         res.status(401).send({ result: false, msg: "Invalid Credential" });
       }

@@ -4,8 +4,10 @@ const mongoose = require("mongoose")
 const { connection } = require("./configs/db");
 const { authorAuth } = require("./controllers/author.auth");
 const { AuthorRouter } = require("./routes/Author.route");
+const { BlogRoute } = require("./routes/Blog.route");
 
 require("dotenv").config();
+
 mongoose.set('strictQuery', true);
 const app = express();
 app.use(express.json());
@@ -16,7 +18,10 @@ app.use(
   })
 );
 
+// ------------------{ All routes are used here }---------------------------->
+
 app.use("/author", AuthorRouter);
+app.use("/posts", BlogRoute)
 
 app.get("/", (req, res) => {
   res.send("Hello BE");

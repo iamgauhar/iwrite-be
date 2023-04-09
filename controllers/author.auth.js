@@ -17,4 +17,4 @@ const authorAuth = (req, res, next) => {
   }
 };
 
-module.exports = { authorAuth };
+// module.exports = { authorAuth };

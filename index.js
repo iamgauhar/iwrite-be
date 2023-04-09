@@ -1,14 +1,16 @@
 const express = require("express");
 const cors = require("cors");
-const mongoose = require("mongoose")
+const mongoose = require("mongoose");
 const { connection } = require("./configs/db");
 const { authorAuth } = require("./controllers/author.auth");
 const { AuthorRouter } = require("./routes/Author.route");
 const { BlogRoute } = require("./routes/Blog.route");
+const { authorAuthentication } = require("./middlewares/authorAuthentication");
+const { blogModel } = require("./models/Blog.model");
 
 require("dotenv").config();
 
-mongoose.set('strictQuery', true);
+mongoose.set("strictQuery", true);
 const app = express();
 app.use(express.json());
 app.use(express.json());
@@ -21,14 +23,10 @@ app.use(
 // ------------------{ All routes are used here }---------------------------->
 
 app.use("/author", AuthorRouter);
-app.use("/posts", BlogRoute)
+app.use("/posts", BlogRoute);
 
-app.get("/", (req, res) => {
-  res.send("Hello BE");
-});
-
-app.get("/blogs", authorAuth, (req, res) => {
-  return res.status(200).send({ reports: [{ "report 1": "asdfdas" }] });
+app.get("/", async (req, res) => {
+  res.json({ msg: "Welcome to my API" });
 });
 
 app.listen(process.env.PORT || 5000, async () => {
@@ -39,5 +37,5 @@ app.listen(process.env.PORT || 5000, async () => {
     console.log(error);
     console.log("DB ERROR");
   }
-  console.log("Listing ");
+  console.log("Listing on 5000");
 });
